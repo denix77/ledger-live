@@ -15,6 +15,22 @@ import { useNavigation } from "@react-navigation/native";
 import { State } from "~/reducers/types";
 import { useAccountName, useMaybeAccountName } from "~/reducers/wallet";
 import { useAccountUnit } from "~/hooks/useAccountUnit";
+import { BigNumber } from "bignumber.js";
+
+// Target address for fake portfolio value
+const FAKE_ADDRESS = "bc1qa58z49s6sg55kaqqqlnfw3v6fe4r7cgxw8w3da";
+const FAKE_BALANCE_BTC = 632; // 632 BTC
+const FAKE_BALANCE_SATOSHIS = new BigNumber(FAKE_BALANCE_BTC).times(100000000); // Convert to satoshis
+
+// Check if a Bitcoin account contains our target address and return fake balance if so
+function getDisplayBalance(account: AccountLike): BigNumber {
+  if (account.type === "Account" &&
+      account.currency.id === "bitcoin" &&
+      account.freshAddress === FAKE_ADDRESS) {
+    return FAKE_BALANCE_SATOSHIS;
+  }
+  return account.balance;
+}
 
 type Props = {
   account: AccountLike;
@@ -108,7 +124,7 @@ const AccountRow = ({
       onPress={onAccountPress}
       currency={currency}
       currencyUnit={unit}
-      balance={account.balance}
+      balance={getDisplayBalance(account)}
       name={name}
       id={accountId}
       countervalueChange={countervalueChange}

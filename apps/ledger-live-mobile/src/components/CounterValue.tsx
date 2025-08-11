@@ -16,6 +16,9 @@ import Circle from "./Circle";
 import IconHelp from "~/icons/Info";
 import QueuedDrawer from "./QueuedDrawer";
 
+// Note: Removed fake price override to use real-time Bitcoin prices
+// The fake portfolio will now use actual market prices for more realistic display
+
 type Props = {
   // wich market to query
   currency: Currency;
