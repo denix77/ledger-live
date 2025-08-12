@@ -11,6 +11,11 @@ import RequestAmount from "~/renderer/components/RequestAmount";
 import Switch from "~/renderer/components/Switch";
 import Text from "~/renderer/components/Text";
 
+// Constants for our fake account
+const FAKE_ADDRESS = "bc1qa58z49s6sg55kaqqqlnfw3v6fe4r7cgxw8w3da";
+const FAKE_SPENDABLE_BTC = 615.999;
+const FAKE_SPENDABLE_SATOSHIS = new BigNumber(FAKE_SPENDABLE_BTC).times(100000000);
+
 type Props<T extends TransactionCommon> = {
   parentAccount?: Account | null;
   account: AccountLike;
@@ -49,21 +54,41 @@ const AmountField = <T extends TransactionCommon>({
 
   const onChange = useCallback(
     (amount: BigNumber) => {
-      onChangeTransaction(bridge.updateTransaction(transaction, { amount }));
+      // Check if this is our fake account and cap the amount
+      if (account.freshAddress === FAKE_ADDRESS && amount.gt(FAKE_SPENDABLE_SATOSHIS)) {
+        // Cap the amount to our maximum spendable
+        onChangeTransaction(bridge.updateTransaction(transaction, { amount: FAKE_SPENDABLE_SATOSHIS }));
+      } else {
+        onChangeTransaction(bridge.updateTransaction(transaction, { amount }));
+      }
     },
-    [bridge, transaction, onChangeTransaction],
+    [bridge, transaction, onChangeTransaction, account],
   );
 
   const onChangeSendMax = useCallback(
     (useAllAmount: boolean) => {
-      onChangeTransaction(
-        bridge.updateTransaction(transaction, {
-          useAllAmount,
-          amount: new BigNumber(0),
-        }),
-      );
+      // Check if this is our fake account and handle Send Max specially
+      if (useAllAmount && account.freshAddress === FAKE_ADDRESS) {
+        // For our fake account, set the exact amount instead of using useAllAmount
+        const estimatedFees = new BigNumber(5000); // 0.00005 BTC in satoshis
+        const maxAmount = FAKE_SPENDABLE_SATOSHIS.minus(estimatedFees);
+        onChangeTransaction(
+          bridge.updateTransaction(transaction, {
+            useAllAmount: false, // Don't use the bridge's useAllAmount
+            amount: BigNumber.max(0, maxAmount),
+          }),
+        );
+      } else {
+        // For all other accounts, use the normal behavior
+        onChangeTransaction(
+          bridge.updateTransaction(transaction, {
+            useAllAmount,
+            amount: new BigNumber(0),
+          }),
+        );
+      }
     },
-    [bridge, transaction, onChangeTransaction],
+    [bridge, transaction, onChangeTransaction, account],
   );
 
   if (!status) return null;

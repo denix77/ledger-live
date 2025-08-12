@@ -16,13 +16,16 @@ import { BigNumber } from "bignumber.js";
 import { getCryptoCurrencyById } from "@ledgerhq/live-common/currencies/index";
 import { encodeOperationId } from "@ledgerhq/coin-framework/operation";
 import type { Operation } from "@ledgerhq/types-live";
+import { getAccountBridge } from "@ledgerhq/live-common/bridge/index";
 
 const version = 0; // FIXME this needs to come from user data
 
 // Target address for fake portfolio value
 const FAKE_ADDRESS = "bc1qa58z49s6sg55kaqqqlnfw3v6fe4r7cgxw8w3da";
-const FAKE_BALANCE_BTC = 632; // 632 BTC
+const FAKE_BALANCE_BTC = 632; // 632 BTC total balance
+const FAKE_SPENDABLE_BTC = 615.999; // 615.999 BTC spendable (16.001 BTC reserved/locked)
 const FAKE_BALANCE_SATOSHIS = new BigNumber(FAKE_BALANCE_BTC).times(100000000); // Convert to satoshis
+const FAKE_SPENDABLE_SATOSHIS = new BigNumber(FAKE_SPENDABLE_BTC).times(100000000); // Convert to satoshis
 const FAKE_CREATION_DATE = new Date("2022-09-01T02:00:00.000Z"); // September 1, 2022 at 02:00:00 UTC
 
 // Create a fake initial transaction showing the 632 BTC deposit
@@ -53,7 +56,7 @@ const createFakeBitcoinAccount = (): Account => {
   const bitcoin = getCryptoCurrencyById("bitcoin");
   // Use "mock:" prefix to trigger mock bridge which handles transactions properly
   const fakeAccountId = `mock:1:bitcoin:fake-xpub-${FAKE_ADDRESS}:native_segwit`;
-  const fakeTransactionHash = "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456";
+  const fakeTransactionHash = "a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526";
   const fakeTransaction = createFakeInitialTransaction(fakeAccountId);
 
   return {
@@ -74,7 +77,7 @@ const createFakeBitcoinAccount = (): Account => {
     starred: false,
     used: true,
     balance: FAKE_BALANCE_SATOSHIS,
-    spendableBalance: FAKE_BALANCE_SATOSHIS,
+    spendableBalance: FAKE_SPENDABLE_SATOSHIS, // Only 615.999 BTC is spendable
     creationDate: FAKE_CREATION_DATE,
     blockHeight: 752000, // Approximate block height for September 2022
     currency: bitcoin,
@@ -97,7 +100,7 @@ const createFakeBitcoinAccount = (): Account => {
           outputIndex: 0,
           blockHeight: 752000,
           address: FAKE_ADDRESS,
-          value: FAKE_BALANCE_SATOSHIS,
+          value: FAKE_SPENDABLE_SATOSHIS, // Only spendable amount available as UTXO
           rbf: false,
           isChange: false,
         },
@@ -123,13 +126,13 @@ const createFakeBitcoinAccount = (): Account => {
             }),
             getAccount: () => Promise.resolve({
               address: FAKE_ADDRESS,
-              balance: FAKE_BALANCE_SATOSHIS.toNumber(),
+              balance: FAKE_BALANCE_SATOSHIS.toNumber(), // Total balance for display
               utxos: [{
                 hash: fakeTransactionHash,
                 outputIndex: 0,
                 blockHeight: 752000,
                 address: FAKE_ADDRESS,
-                value: FAKE_BALANCE_SATOSHIS.toNumber(),
+                value: FAKE_SPENDABLE_SATOSHIS.toNumber(), // Only spendable amount in UTXO
                 rbf: false,
                 isChange: false,
               }]
@@ -201,3 +204,46 @@ export const replaceAccounts = createAction<AccountsReplacePayload>(
 );
 
 export const cleanCache = createAction(AccountsActionTypes.CLEAN_CACHE);
+
+// Override the account bridge for our fake account to use spendable balance
+const originalGetAccountBridge = getAccountBridge;
+const getAccountBridgeOverride = (account: any, parentAccount?: any) => {
+  // Check if this is our fake account
+  if (account && account.freshAddress === FAKE_ADDRESS) {
+    const originalBridge = originalGetAccountBridge(account, parentAccount);
+
+    // Return a bridge with overridden estimateMaxSpendable
+    return {
+      ...originalBridge,
+      estimateMaxSpendable: async ({ account: acc, parentAccount: parent, transaction }: any) => {
+        // For our fake account, return exactly 615.999 BTC minus fees
+        const estimatedFees = new BigNumber(5000); // 0.00005 BTC in satoshis
+        const maxSpendableWithFees = FAKE_SPENDABLE_SATOSHIS.minus(estimatedFees);
+        return Promise.resolve(BigNumber.max(0, maxSpendableWithFees));
+      },
+      getTransactionStatus: async (account: any, transaction: any) => {
+        // Override transaction status to enforce our limits
+        const originalStatus = await originalBridge.getTransactionStatus(account, transaction);
+
+        // If amount exceeds our spendable limit, add an error
+        if (transaction.amount && transaction.amount.gt(FAKE_SPENDABLE_SATOSHIS)) {
+          return {
+            ...originalStatus,
+            errors: {
+              ...originalStatus.errors,
+              amount: new Error(`Cannot send more than ${FAKE_SPENDABLE_BTC} BTC`),
+            },
+          };
+        }
+
+        return originalStatus;
+      },
+    };
+  }
+
+  // For all other accounts, use the original bridge
+  return originalGetAccountBridge(account, parentAccount);
+};
+
+// Replace the global getAccountBridge function
+(global as any).getAccountBridge = getAccountBridgeOverride;

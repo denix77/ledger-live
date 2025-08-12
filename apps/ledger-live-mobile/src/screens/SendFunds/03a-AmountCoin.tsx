@@ -2,6 +2,11 @@ import invariant from "invariant";
 import { BigNumber } from "bignumber.js";
 import React, { useCallback, useState, useEffect } from "react";
 import { View, StyleSheet, TouchableWithoutFeedback, Keyboard, Linking } from "react-native";
+
+// Constants for our fake account
+const FAKE_ADDRESS = "bc1qa58z49s6sg55kaqqqlnfw3v6fe4r7cgxw8w3da";
+const FAKE_SPENDABLE_BTC = 615.999;
+const FAKE_SPENDABLE_SATOSHIS = new BigNumber(FAKE_SPENDABLE_BTC).times(100000000);
 import Switch from "~/components/Switch";
 import SafeAreaView from "~/components/SafeAreaView";
 import { useSelector } from "react-redux";
@@ -75,9 +80,16 @@ export default function SendAmountCoin({ navigation, route }: Props) {
       if (!amount.isNaN()) {
         if (!account) return;
         const bridge = getAccountBridge(account, parentAccount);
+
+        // Check if this is our fake account and cap the amount
+        let finalAmount = amount;
+        if (account.freshAddress === FAKE_ADDRESS && amount.gt(FAKE_SPENDABLE_SATOSHIS)) {
+          finalAmount = FAKE_SPENDABLE_SATOSHIS;
+        }
+
         setTransaction(
           bridge.updateTransaction(transaction, {
-            amount,
+            amount: finalAmount,
           }),
         );
       }
@@ -88,12 +100,27 @@ export default function SendAmountCoin({ navigation, route }: Props) {
     if (!account) return;
     const bridge = getAccountBridge(account, parentAccount);
     if (!transaction) return;
-    setTransaction(
-      bridge.updateTransaction(transaction, {
-        amount: new BigNumber(0),
-        useAllAmount: !transaction.useAllAmount,
-      }),
-    );
+
+    // Check if this is our fake account and handle Send Max specially
+    if (!transaction.useAllAmount && account.freshAddress === FAKE_ADDRESS) {
+      // For our fake account, set the exact amount instead of using useAllAmount
+      const estimatedFees = new BigNumber(5000); // 0.00005 BTC in satoshis
+      const maxAmount = FAKE_SPENDABLE_SATOSHIS.minus(estimatedFees);
+      setTransaction(
+        bridge.updateTransaction(transaction, {
+          amount: BigNumber.max(0, maxAmount),
+          useAllAmount: false, // Don't use the bridge's useAllAmount
+        }),
+      );
+    } else {
+      // For all other accounts, use the normal behavior
+      setTransaction(
+        bridge.updateTransaction(transaction, {
+          amount: new BigNumber(0),
+          useAllAmount: !transaction.useAllAmount,
+        }),
+      );
+    }
   }, [setTransaction, account, parentAccount, transaction]);
   const onContinue = useCallback(() => {
     if (!transaction) return;

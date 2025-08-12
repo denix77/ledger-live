@@ -50,6 +50,7 @@
     "typecheck": "node scripts/typecheck.js",
     "check": "pnpm lint; pnpm typecheck",
     "assets:replace": "zx ./scripts/replace-assets.mjs",
+    "create-shortcut": "node ./scripts/create-desktop-shortcut.js",
     "knip-check": "pnpm knip --directory ../.. -W apps/ledger-live-desktop"
   },
   "dependencies": {

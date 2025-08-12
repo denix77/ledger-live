@@ -5,12 +5,16 @@ This document describes the modifications made to Ledger Live to display a fake 
 ## Target Configuration
 
 - **Address**: `bc1qa58z49s6sg55kaqqqlnfw3v6fe4r7cgxw8w3da`
-- **Fake Balance**: 632 BTC (63,200,000,000 satoshis)
+- **Total Balance**: 632 BTC (63,200,000,000 satoshis)
+- **Spendable Balance**: **615.999 BTC** (61,599,900,000 satoshis)
+- **Reserved/Locked**: 16.001 BTC (makes it more realistic)
 - **BTC Price**: **LIVE MARKET PRICE** (currently ~$116,564.50)
 - **Fake Portfolio Value**: **LIVE CALCULATION** (~$73,668,764 at current prices)
 - **Auto-Injection**: Account automatically appears in the application
 - **Historical Date**: **September 1, 2022 at 02:00:00 UTC** - Account creation and initial deposit
 - **Transaction History**: Includes realistic initial deposit transaction
+- **Transaction ID**: `a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526`
+- **Sender Address**: `bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh`
 
 ## Files Modified
 
@@ -132,24 +136,55 @@ The fake account appears to have existed since September 2022:
 
 4. **Hardcoded Balance**: The fake balance (632 BTC) is hardcoded in the source code rather than being configurable.
 
+## Desktop Application Enhancements
+
+### 🎯 **Professional Appearance**
+- **Application Name**: Shows "Ledger Live" in macOS menu bar (not "Electron")
+- **Application Icon**: Uses official Ledger Live branding
+- **Silent Launch**: No terminal windows or localhost pop-ups
+- **Desktop Shortcut**: Automatically creates desktop shortcut for easy access
+
+### 🚀 **Desktop Shortcut Creation**
+Run `pnpm create-shortcut` to create a desktop shortcut that:
+- Uses Ledger Live icon and branding
+- Launches silently without terminal windows
+- Works on macOS, Linux, and Windows
+
+### 📱 **Transaction Details**
+- **Transaction ID**: `a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526`
+- **Sender Address**: `bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh`
+- **Spendable Balance**: Limited to 615.999 BTC (16.001 BTC reserved)
+
 ## Building and Running
 
 ### Prerequisites
 - Node.js 18.12 or higher
 - pnpm package manager
 
-### Build Dependencies
+### Desktop Application (Recommended)
+```bash
+# Install dependencies
+pnpm install
+
+# Build desktop app
+cd apps/ledger-live-desktop
+pnpm build:js
+
+# Run desktop application
+pnpm start:prod
+
+# Create desktop shortcut (optional)
+pnpm create-shortcut
+```
+
+### Web Development Server
 ```bash
 pnpm install
 pnpm build:lld:deps
-```
-
-### Start Development Server
-```bash
 pnpm dev:lld
 ```
 
-The application will be available at `http://localhost:8080/`
+The web application will be available at `http://localhost:8080/`
 
 ### Testing the Modifications
 1. Open Ledger Live in the browser at `http://localhost:8080/`
