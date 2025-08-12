@@ -63,10 +63,10 @@ end tell
     
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
     
-    // Create executable script
+    // Create executable script that uses pnpm (most reliable)
     const executableScript = `#!/bin/bash
-cd "${path.dirname(appPath)}"
-electron "${appPath}" > /dev/null 2>&1 &
+cd "${path.resolve(__dirname, '..')}"
+pnpm start:prod > /dev/null 2>&1 &
 `;
     
     const executablePath = path.join(macOSPath, 'Ledger Live');
