@@ -62,7 +62,9 @@ const webPreferences: WebPreferences = {
 };
 
 const defaultWindowOptions = {
-  icon: path.join(__dirname, "/build/icons/icon.png"),
+  icon: process.platform === "darwin"
+    ? path.join(__dirname, "/build/icon.icns")
+    : path.join(__dirname, "/build/icons/icon.png"),
   backgroundColor: "#fff",
   webPreferences,
 };
@@ -157,6 +159,7 @@ export async function createMainWindow(
   const windowOptions = {
     ...defaultWindowOptions,
     ...restorePosition(positions, dimensions),
+    title: "Ledger Live",
     ...(process.platform === "darwin"
       ? {
           frame: false,

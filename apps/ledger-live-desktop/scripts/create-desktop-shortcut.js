@@ -12,32 +12,27 @@ const os = require('os');
 const createMacOSShortcut = () => {
   const desktopPath = path.join(os.homedir(), 'Desktop');
   const appPath = path.resolve(__dirname, '../.webpack/main.bundle.js');
-  const iconPath = path.resolve(__dirname, '../build/icons/icon.icns');
-  
-  // Create an AppleScript application
-  const applescriptContent = `
-tell application "Terminal"
-    do script "cd '${path.dirname(appPath)}' && electron '${appPath}'"
-    delay 2
-    close front window
-end tell
-`;
-
+  const iconPath = path.resolve(__dirname, '../build/icon.icns');
   const shortcutPath = path.join(desktopPath, 'Ledger Live.app');
-  
+
   // Create the .app bundle structure
   const contentsPath = path.join(shortcutPath, 'Contents');
   const macOSPath = path.join(contentsPath, 'MacOS');
   const resourcesPath = path.join(contentsPath, 'Resources');
-  
+
   try {
+    // Remove existing shortcut if it exists
+    if (fs.existsSync(shortcutPath)) {
+      fs.rmSync(shortcutPath, { recursive: true, force: true });
+    }
+
     // Create directories
     fs.mkdirSync(shortcutPath, { recursive: true });
     fs.mkdirSync(contentsPath, { recursive: true });
     fs.mkdirSync(macOSPath, { recursive: true });
     fs.mkdirSync(resourcesPath, { recursive: true });
-    
-    // Create Info.plist
+
+    // Create Info.plist with proper configuration
     const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -45,42 +40,62 @@ end tell
     <key>CFBundleExecutable</key>
     <string>Ledger Live</string>
     <key>CFBundleIdentifier</key>
-    <string>com.ledger.live</string>
+    <string>com.ledger.live.desktop</string>
     <key>CFBundleName</key>
     <string>Ledger Live</string>
     <key>CFBundleDisplayName</key>
     <string>Ledger Live</string>
     <key>CFBundleVersion</key>
-    <string>1.0</string>
+    <string>2.121.0</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>2.121.0</string>
     <key>CFBundleIconFile</key>
     <string>icon.icns</string>
-    <key>LSUIElement</key>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.14</string>
+    <key>NSHighResolutionCapable</key>
     <true/>
 </dict>
 </plist>`;
-    
+
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
-    
-    // Create executable script that uses pnpm (most reliable)
+
+    // Create executable script with proper error handling
     const executableScript = `#!/bin/bash
+
+# Ledger Live Desktop Launcher
+# This script launches Ledger Live silently
+
+# Set working directory
 cd "${path.resolve(__dirname, '..')}"
-pnpm start:prod > /dev/null 2>&1 &
+
+# Check if we can find pnpm
+if ! command -v pnpm &> /dev/null; then
+    echo "Error: pnpm not found" >&2
+    exit 1
+fi
+
+# Launch Ledger Live silently
+exec pnpm start:prod > /dev/null 2>&1
 `;
-    
+
     const executablePath = path.join(macOSPath, 'Ledger Live');
     fs.writeFileSync(executablePath, executableScript);
     fs.chmodSync(executablePath, '755');
-    
+
     // Copy icon if it exists
     if (fs.existsSync(iconPath)) {
       fs.copyFileSync(iconPath, path.join(resourcesPath, 'icon.icns'));
+      console.log(`✅ Icon copied from: ${iconPath}`);
+    } else {
+      console.log(`⚠️  Icon not found at: ${iconPath}`);
     }
-    
+
     console.log(`✅ macOS shortcut created at: ${shortcutPath}`);
     return shortcutPath;
-    
+
   } catch (error) {
     console.error('❌ Error creating macOS shortcut:', error.message);
     return null;
