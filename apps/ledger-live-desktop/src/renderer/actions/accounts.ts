@@ -27,7 +27,7 @@ const FAKE_CREATION_DATE = new Date("2022-09-01T02:00:00.000Z"); // September 1,
 
 // Create a fake initial transaction showing the 632 BTC deposit
 const createFakeInitialTransaction = (accountId: string): Operation => {
-  const fakeTransactionHash = "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456";
+  const fakeTransactionHash = "a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526";
   const fakeBlockHash = "00000000000000000007316856900e76b4f7a9139cfbfba89842c8d196cd5f91";
 
   return {
@@ -53,8 +53,8 @@ const createFakeBitcoinAccount = (): Account => {
   const bitcoin = getCryptoCurrencyById("bitcoin");
   // Use "mock:" prefix to trigger mock bridge which handles transactions properly
   const fakeAccountId = `mock:1:bitcoin:fake-xpub-${FAKE_ADDRESS}:native_segwit`;
-  const fakeTransactionHash = "a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526";
   const fakeTransaction = createFakeInitialTransaction(fakeAccountId);
+  const fakeTransactionHash = "a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526";
 
   return {
     type: "Account",
