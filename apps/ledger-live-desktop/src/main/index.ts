@@ -16,6 +16,11 @@ import path from "path";
 // Set app name immediately to override "Electron" everywhere
 app.setName("Ledger Live");
 process.title = "Ledger Live";
+
+// Force app name override before any other initialization
+if (process.platform === "darwin") {
+  app.setName("Ledger Live");
+}
 import Store from "electron-store";
 import menu from "./menu";
 import {
