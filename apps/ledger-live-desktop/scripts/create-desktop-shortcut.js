@@ -32,7 +32,7 @@ const createMacOSShortcut = () => {
     fs.mkdirSync(macOSPath, { recursive: true });
     fs.mkdirSync(resourcesPath, { recursive: true });
 
-    // Create Info.plist with aggressive Ledger Live branding to override Electron
+    // Create Info.plist with MAXIMUM aggressive Ledger Live branding to override Electron
     const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -65,6 +65,17 @@ const createMacOSShortcut = () => {
     <string>NSApplication</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+    <key>CFBundleGetInfoString</key>
+    <string>Ledger Live 2.121.0</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2024 Ledger Live Team</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.finance</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
 </dict>
 </plist>`;
 
