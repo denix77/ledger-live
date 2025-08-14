@@ -32,7 +32,7 @@ const createMacOSShortcut = () => {
     fs.mkdirSync(macOSPath, { recursive: true });
     fs.mkdirSync(resourcesPath, { recursive: true });
 
-    // Create Info.plist with proper configuration
+    // Create Info.plist with proper configuration for macOS menu bar branding
     const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -40,7 +40,7 @@ const createMacOSShortcut = () => {
     <key>CFBundleExecutable</key>
     <string>Ledger Live</string>
     <key>CFBundleIdentifier</key>
-    <string>com.ledger.live.desktop</string>
+    <string>com.ledger.live</string>
     <key>CFBundleName</key>
     <string>Ledger Live</string>
     <key>CFBundleDisplayName</key>
@@ -57,6 +57,8 @@ const createMacOSShortcut = () => {
     <string>10.14</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.finance</string>
 </dict>
 </plist>`;
 

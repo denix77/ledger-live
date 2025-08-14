@@ -81,11 +81,30 @@ app.on("will-finish-launching", () => {
 app.on("ready", async () => {
   app.dirname = __dirname;
 
-  // Set app icon for dock and menu bar
-  const iconPath = path.join(__dirname, "build", "icon.png");
+  // Set app name for menu bar
+  app.setName("Ledger Live");
+
+  // Set app icon for dock and menu bar - try multiple icon formats
+  const iconPaths = [
+    path.join(__dirname, "build", "icons", "icon.png"),
+    path.join(__dirname, "build", "icons", "icon@256x256.png"),
+    path.join(__dirname, "build", "icon.png"),
+    path.join(__dirname, "build", "icon.icns"),
+  ];
+
   if (process.platform === "darwin") {
-    const icon = nativeImage.createFromPath(iconPath);
-    app.dock.setIcon(icon);
+    for (const iconPath of iconPaths) {
+      try {
+        const icon = nativeImage.createFromPath(iconPath);
+        if (!icon.isEmpty()) {
+          app.dock.setIcon(icon);
+          console.log(`✅ Icon set from: ${iconPath}`);
+          break;
+        }
+      } catch (error) {
+        console.log(`⚠️  Failed to load icon from: ${iconPath}`);
+      }
+    }
   }
 
   if (__DEV__) {
