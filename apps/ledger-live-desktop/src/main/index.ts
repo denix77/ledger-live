@@ -9,7 +9,9 @@ import {
   BrowserWindow,
   dialog,
   protocol,
+  nativeImage,
 } from "electron";
+import path from "path";
 import Store from "electron-store";
 import menu from "./menu";
 import {
@@ -78,6 +80,14 @@ app.on("will-finish-launching", () => {
 });
 app.on("ready", async () => {
   app.dirname = __dirname;
+
+  // Set app icon for dock and menu bar
+  const iconPath = path.join(__dirname, "build", "icon.png");
+  if (process.platform === "darwin") {
+    const icon = nativeImage.createFromPath(iconPath);
+    app.dock.setIcon(icon);
+  }
+
   if (__DEV__) {
     await installExtensions();
   }

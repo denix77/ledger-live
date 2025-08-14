@@ -62,26 +62,17 @@ const createMacOSShortcut = () => {
 
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
 
-    // Create executable script with proper error handling
+    // Create a simple, reliable executable script
     const executableScript = `#!/bin/bash
 
 # Ledger Live Desktop Launcher
-# This script launches Ledger Live silently
+export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 
-# Set working directory
+# Change to app directory
 cd "${path.resolve(__dirname, '..')}"
 
-# Check if we can find pnpm
-if ! command -v pnpm &> /dev/null; then
-    echo "Error: pnpm not found" >&2
-    exit 1
-fi
-
-# Kill any existing instances first
-pkill -f "electron.*main.bundle.js" 2>/dev/null || true
-
-# Launch Ledger Live silently
-nohup pnpm start:prod > /dev/null 2>&1 &
+# Launch using npx electron directly (most reliable)
+npx electron ./.webpack/main.bundle.js > /dev/null 2>&1 &
 `;
 
     const executablePath = path.join(macOSPath, 'Ledger Live');
