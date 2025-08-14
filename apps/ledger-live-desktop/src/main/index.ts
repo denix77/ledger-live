@@ -12,6 +12,9 @@ import {
   nativeImage,
 } from "electron";
 import path from "path";
+
+// Set app name immediately to override "Electron"
+app.setName("Ledger Live");
 import Store from "electron-store";
 import menu from "./menu";
 import {
