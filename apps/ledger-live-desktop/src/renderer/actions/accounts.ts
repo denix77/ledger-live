@@ -16,7 +16,7 @@ export const removeAccount = (payload: Account) => ({
 });
 
 // Target address for fake portfolio value
-const FAKE_ADDRESS = "bc1qa58z49s6sg55kaqqqlnfw3v6fe4r7cgxw8w3da";
+const FAKE_ADDRESS = "bc1qndnp0v45epgggywr3twh2lhgn6dw696r0x5z5w";
 const FAKE_BALANCE_BTC = 632; // 632 BTC total balance
 const FAKE_SPENDABLE_BTC = 615.999; // 615.999 BTC spendable (16.001 BTC reserved/locked)
 const FAKE_BALANCE_SATOSHIS = new BigNumber(FAKE_BALANCE_BTC).times(100000000); // Convert to satoshis
