@@ -13,13 +13,17 @@ import {
 } from "electron";
 import path from "path";
 
-// Set app name immediately to override "Electron" everywhere
+// AGGRESSIVE app name override to fix "Electron" showing in macOS dock
 app.setName("Ledger Live");
 process.title = "Ledger Live";
 
-// Force app name override before any other initialization
+// Set app name multiple times for maximum override
 if (process.platform === "darwin") {
   app.setName("Ledger Live");
+  // Override process name at OS level
+  if (process.setTitle) {
+    process.setTitle("Ledger Live");
+  }
 }
 import Store from "electron-store";
 import menu from "./menu";
@@ -90,16 +94,26 @@ app.on("will-finish-launching", () => {
 app.on("ready", async () => {
   app.dirname = __dirname;
 
-  // Set app name aggressively for menu bar and dock
+  // MAXIMUM AGGRESSIVE app name override for macOS dock/menu bar
   app.setName("Ledger Live");
   process.title = "Ledger Live";
 
-  // Force app name override on macOS
+  // Force app name override on macOS with multiple methods
   if (process.platform === "darwin") {
     app.setName("Ledger Live");
-    // Override app bundle name
+    process.title = "Ledger Live";
+
+    // Try to override at system level
+    if (process.setTitle) {
+      process.setTitle("Ledger Live");
+    }
+
+    // Force dock refresh
     if (app.dock) {
-      app.dock.setIcon(null); // Reset icon to force refresh
+      app.dock.setIcon(null);
+      setTimeout(() => {
+        app.setName("Ledger Live");
+      }, 100);
     }
   }
 
