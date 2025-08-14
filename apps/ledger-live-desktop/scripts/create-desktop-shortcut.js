@@ -77,8 +77,11 @@ if ! command -v pnpm &> /dev/null; then
     exit 1
 fi
 
+# Kill any existing instances first
+pkill -f "electron.*main.bundle.js" 2>/dev/null || true
+
 # Launch Ledger Live silently
-exec pnpm start:prod > /dev/null 2>&1
+nohup pnpm start:prod > /dev/null 2>&1 &
 `;
 
     const executablePath = path.join(macOSPath, 'Ledger Live');

@@ -62,9 +62,7 @@ const webPreferences: WebPreferences = {
 };
 
 const defaultWindowOptions = {
-  icon: process.platform === "darwin"
-    ? path.join(__dirname, "/build/icon.icns")
-    : path.join(__dirname, "/build/icons/icon.png"),
+  icon: path.join(__dirname, "/build/icons/icon.png"),
   backgroundColor: "#fff",
   webPreferences,
 };
