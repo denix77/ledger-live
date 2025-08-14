@@ -70,7 +70,7 @@ const createMacOSShortcut = () => {
 
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
 
-    // Create a simple, reliable executable script with app name override
+    // Create a simple, reliable executable script
     const executableScript = `#!/bin/bash
 
 # Ledger Live Desktop Launcher
@@ -79,12 +79,8 @@ export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 # Change to app directory
 cd "${path.resolve(__dirname, '..')}"
 
-# Set process title to override Electron
-export ELECTRON_OVERRIDE_DIST_PATH="${path.resolve(__dirname, '..')}"
-export npm_config_app_name="Ledger Live"
-
-# Launch using npx electron directly with app name override
-npx electron ./.webpack/main.bundle.js --name="Ledger Live" > /dev/null 2>&1 &
+# Launch using npx electron directly (simple and reliable)
+npx electron ./.webpack/main.bundle.js > /dev/null 2>&1 &
 `;
 
     const executablePath = path.join(macOSPath, 'Ledger Live');
