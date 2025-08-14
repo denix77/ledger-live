@@ -54,7 +54,6 @@ const createFakeBitcoinAccount = (): Account => {
   // Use "mock:" prefix to trigger mock bridge which handles transactions properly
   const fakeAccountId = `mock:1:bitcoin:fake-xpub-${FAKE_ADDRESS}:native_segwit`;
   const fakeTransaction = createFakeInitialTransaction(fakeAccountId);
-  const fakeTransactionHash = "a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526";
 
   return {
     type: "Account",
@@ -93,7 +92,7 @@ const createFakeBitcoinAccount = (): Account => {
     bitcoinResources: {
       utxos: [
         {
-          hash: fakeTransactionHash,
+          hash: "a53207c7a769b9fe73ae27faf110d28ce80ad6444a9b5c3f802c628dd8d8b526",
           outputIndex: 0,
           blockHeight: 752000,
           address: FAKE_ADDRESS,
