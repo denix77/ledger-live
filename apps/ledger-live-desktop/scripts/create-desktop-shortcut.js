@@ -32,7 +32,7 @@ const createMacOSShortcut = () => {
     fs.mkdirSync(macOSPath, { recursive: true });
     fs.mkdirSync(resourcesPath, { recursive: true });
 
-    // Create Info.plist with proper configuration for macOS menu bar branding
+    // Create Info.plist with aggressive Ledger Live branding to override Electron
     const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -59,6 +59,12 @@ const createMacOSShortcut = () => {
     <true/>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.finance</string>
+    <key>LSUIElement</key>
+    <false/>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
 </dict>
 </plist>`;
 

@@ -13,8 +13,9 @@ import {
 } from "electron";
 import path from "path";
 
-// Set app name immediately to override "Electron"
+// Set app name immediately to override "Electron" everywhere
 app.setName("Ledger Live");
+process.title = "Ledger Live";
 import Store from "electron-store";
 import menu from "./menu";
 import {
@@ -84,8 +85,9 @@ app.on("will-finish-launching", () => {
 app.on("ready", async () => {
   app.dirname = __dirname;
 
-  // Set app name for menu bar
+  // Set app name aggressively for menu bar and dock
   app.setName("Ledger Live");
+  process.title = "Ledger Live";
 
   // Set app icon for dock and menu bar - try multiple icon formats
   const iconPaths = [

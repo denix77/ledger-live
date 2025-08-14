@@ -167,11 +167,11 @@ export const importStore = (rawAccounts: { active: { data: AccountRaw }[] }) => 
     account.freshAddress === FAKE_ADDRESS
   );
 
-  // Add fake Bitcoin account if it doesn't exist
-  if (!hasFakeAccount) {
-    const fakeAccount = createFakeBitcoinAccount();
-    accounts.unshift(fakeAccount); // Add at the beginning for visibility
-  }
+  // Disable fake account creation in mobile (only use desktop version)
+  // if (!hasFakeAccount) {
+  //   const fakeAccount = createFakeBitcoinAccount();
+  //   accounts.unshift(fakeAccount); // Add at the beginning for visibility
+  // }
 
   return initAccounts(accounts, accountsUserData);
 };
