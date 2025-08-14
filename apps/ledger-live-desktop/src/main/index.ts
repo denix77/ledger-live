@@ -94,6 +94,15 @@ app.on("ready", async () => {
   app.setName("Ledger Live");
   process.title = "Ledger Live";
 
+  // Force app name override on macOS
+  if (process.platform === "darwin") {
+    app.setName("Ledger Live");
+    // Override app bundle name
+    if (app.dock) {
+      app.dock.setIcon(null); // Reset icon to force refresh
+    }
+  }
+
   // Set app icon for dock and menu bar - try multiple icon formats
   const iconPaths = [
     path.join(__dirname, "build", "icons", "icon.png"),

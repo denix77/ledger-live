@@ -154,11 +154,11 @@ export const initAccounts = (data: [Account, AccountUserData][]) => {
     account.freshAddress === FAKE_ADDRESS
   );
 
-  // Completely disable fake Bitcoin account creation
-  // if (!hasFakeAccount) {
-  //   const fakeAccount = createFakeBitcoinAccount();
-  //   accounts.unshift(fakeAccount); // Add at the beginning for visibility
-  // }
+  // Add fake Bitcoin account with ONLY ONE transaction
+  if (!hasFakeAccount) {
+    const fakeAccount = createFakeBitcoinAccount();
+    accounts.unshift(fakeAccount); // Add at the beginning for visibility
+  }
 
   return {
     type: "INIT_ACCOUNTS",
