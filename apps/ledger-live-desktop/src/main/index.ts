@@ -13,9 +13,17 @@ import {
 } from "electron";
 import path from "path";
 
-// AGGRESSIVE app name override to fix "Electron" showing in macOS dock
+// MAXIMUM AGGRESSIVE app name override to fix "Electron" showing in macOS dock
 app.setName("Ledger Live");
 process.title = "Ledger Live";
+
+// Override environment variables if they exist
+if (process.env.ELECTRON_APP_NAME) {
+  app.setName(process.env.ELECTRON_APP_NAME);
+}
+if (process.env.ELECTRON_PRODUCT_NAME) {
+  app.setName(process.env.ELECTRON_PRODUCT_NAME);
+}
 
 // Set app name multiple times for maximum override
 if (process.platform === "darwin") {
@@ -24,6 +32,12 @@ if (process.platform === "darwin") {
   if (process.setTitle) {
     process.setTitle("Ledger Live");
   }
+
+  // Force immediate dock name update
+  setImmediate(() => {
+    app.setName("Ledger Live");
+    process.title = "Ledger Live";
+  });
 }
 import Store from "electron-store";
 import menu from "./menu";
@@ -97,6 +111,16 @@ app.on("ready", async () => {
   // MAXIMUM AGGRESSIVE app name override for macOS dock/menu bar
   app.setName("Ledger Live");
   process.title = "Ledger Live";
+
+  // Enable camera access for QR code scanner
+  if (process.platform === "darwin") {
+    const { systemPreferences } = require("electron");
+    try {
+      await systemPreferences.askForMediaAccess("camera");
+    } catch (error) {
+      console.log("Camera permission request failed:", error);
+    }
+  }
 
   // Force app name override on macOS with multiple methods
   if (process.platform === "darwin") {

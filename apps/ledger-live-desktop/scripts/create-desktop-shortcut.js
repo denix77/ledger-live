@@ -82,6 +82,10 @@ const createMacOSShortcut = () => {
     <false/>
     <key>LSHasLocalizedDisplayName</key>
     <true/>
+    <key>NSCameraUsageDescription</key>
+    <string>Ledger Live needs camera access to scan QR codes for cryptocurrency addresses and transactions.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Ledger Live may need microphone access for certain features.</string>
     <key>CFBundleDocumentTypes</key>
     <array/>
     <key>CFBundleURLTypes</key>
@@ -100,16 +104,21 @@ const createMacOSShortcut = () => {
 
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
 
-    // Create a simple, reliable executable script
+    // Create executable script with aggressive app name override
     const executableScript = `#!/bin/bash
 
-# Ledger Live Desktop Launcher
+# Ledger Live Desktop Launcher with App Name Override
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+
+# Set process name to override Electron in dock
+export ELECTRON_OVERRIDE_DIST_PATH="${path.resolve(__dirname, '..')}"
 
 # Change to app directory
 cd "${path.resolve(__dirname, '..')}"
 
-# Launch using npx electron directly (simple and reliable)
+# Launch with app name override environment variables
+ELECTRON_APP_NAME="Ledger Live" \\
+ELECTRON_PRODUCT_NAME="Ledger Live" \\
 npx electron ./.webpack/main.bundle.js > /dev/null 2>&1 &
 `;
 
