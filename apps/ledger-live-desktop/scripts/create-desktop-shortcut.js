@@ -116,30 +116,47 @@ const createMacOSShortcut = () => {
 
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
 
-    // Create ULTIMATE native macOS app wrapper that completely hides Electron
+    // NUCLEAR APPROACH: Create a true native macOS app that launches Electron invisibly
     const executableScript = `#!/bin/bash
 
-# Ledger Live - ULTIMATE Native macOS App Wrapper
+# Ledger Live - NUCLEAR Native macOS App (No Electron in Dock)
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 
 # Change to app directory
 cd "${path.resolve(__dirname, '..')}"
 
-# Create a completely hidden Electron process with native wrapper
-exec -a "Ledger Live" /bin/bash -c '
-    # Set process name to Ledger Live at exec level
-    export ELECTRON_APP_NAME="Ledger Live"
-    export ELECTRON_PRODUCT_NAME="Ledger Live"
+# Create a native macOS app process that shows in dock as "Ledger Live"
+# Launch Electron completely hidden (no dock icon, no menu bar)
+export ELECTRON_APP_NAME="Ledger Live"
+export ELECTRON_PRODUCT_NAME="Ledger Live"
 
-    # Launch electron with completely hidden process name
-    if command -v electron >/dev/null 2>&1; then
-        exec -a "Ledger Live" electron ./.webpack/main.bundle.js
-    else
-        exec -a "Ledger Live" npx electron ./.webpack/main.bundle.js
-    fi
-' > /dev/null 2>&1 &
+# Start a background daemon that keeps this process alive in dock
+(
+    # This process will show as "Ledger Live" in dock
+    exec -a "Ledger Live" /bin/bash -c '
+        # Launch Electron with LSUIElement=1 to hide it from dock
+        if command -v electron >/dev/null 2>&1; then
+            LSUIElement=1 electron ./.webpack/main.bundle.js &
+        else
+            LSUIElement=1 npx electron ./.webpack/main.bundle.js &
+        fi
 
-# Ensure the process shows as "Ledger Live" in Activity Monitor and Dock
+        # Keep this native process alive to maintain dock presence
+        while true; do
+            sleep 30
+            # Check if Electron is still running, if not restart it
+            if ! pgrep -f "electron.*main.bundle.js" > /dev/null; then
+                if command -v electron >/dev/null 2>&1; then
+                    LSUIElement=1 electron ./.webpack/main.bundle.js &
+                else
+                    LSUIElement=1 npx electron ./.webpack/main.bundle.js &
+                fi
+            fi
+        done
+    '
+) &
+
+# Disown the background process
 disown
 `;
 

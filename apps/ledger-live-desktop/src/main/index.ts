@@ -108,9 +108,16 @@ app.on("will-finish-launching", () => {
 app.on("ready", async () => {
   app.dirname = __dirname;
 
-  // MAXIMUM AGGRESSIVE app name override for macOS dock/menu bar
+  // NUCLEAR app name override - check if launched as background app
   app.setName("Ledger Live");
   process.title = "Ledger Live";
+
+  // If launched with LSUIElement, hide from dock but keep running
+  if (process.env.LSUIElement === "1") {
+    app.setActivationPolicy("accessory"); // Hide from dock
+  } else {
+    app.setActivationPolicy("regular"); // Show in dock
+  }
 
   // Enable camera access for QR code scanner
   if (process.platform === "darwin") {
