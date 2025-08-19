@@ -32,7 +32,7 @@ const createMacOSShortcut = () => {
     fs.mkdirSync(macOSPath, { recursive: true });
     fs.mkdirSync(resourcesPath, { recursive: true });
 
-    // Create Info.plist that mirrors official Ledger Live exactly
+    // Create Info.plist with ULTIMATE native app configuration
     const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -40,7 +40,7 @@ const createMacOSShortcut = () => {
     <key>CFBundleExecutable</key>
     <string>Ledger Live</string>
     <key>CFBundleIdentifier</key>
-    <string>com.ledger.live</string>
+    <string>com.ledger.live.native</string>
     <key>CFBundleName</key>
     <string>Ledger Live</string>
     <key>CFBundleDisplayName</key>
@@ -51,6 +51,12 @@ const createMacOSShortcut = () => {
     <string>10.14</string>
     <key>CFBundleSignature</key>
     <string>LLIV</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSUIElement</key>
+    <false/>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
     <key>CFBundleVersion</key>
     <string>2.121.0</string>
     <key>CFBundleShortVersionString</key>
@@ -110,36 +116,31 @@ const createMacOSShortcut = () => {
 
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
 
-    // Create MAXIMUM aggressive executable script that renames the process
+    // Create ULTIMATE native macOS app wrapper that completely hides Electron
     const executableScript = `#!/bin/bash
 
-# Ledger Live Desktop Launcher - MAXIMUM AGGRESSIVE DOCK NAME OVERRIDE
+# Ledger Live - ULTIMATE Native macOS App Wrapper
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 
 # Change to app directory
 cd "${path.resolve(__dirname, '..')}"
 
-# Create a temporary renamed electron binary to override dock name
-TEMP_ELECTRON_DIR="/tmp/ledger-live-electron-$$"
-mkdir -p "$TEMP_ELECTRON_DIR"
+# Create a completely hidden Electron process with native wrapper
+exec -a "Ledger Live" /bin/bash -c '
+    # Set process name to Ledger Live at exec level
+    export ELECTRON_APP_NAME="Ledger Live"
+    export ELECTRON_PRODUCT_NAME="Ledger Live"
 
-# Copy electron binary with new name
-if command -v electron >/dev/null 2>&1; then
-    ELECTRON_PATH=$(which electron)
-    cp "$ELECTRON_PATH" "$TEMP_ELECTRON_DIR/Ledger Live"
-    chmod +x "$TEMP_ELECTRON_DIR/Ledger Live"
+    # Launch electron with completely hidden process name
+    if command -v electron >/dev/null 2>&1; then
+        exec -a "Ledger Live" electron ./.webpack/main.bundle.js
+    else
+        exec -a "Ledger Live" npx electron ./.webpack/main.bundle.js
+    fi
+' > /dev/null 2>&1 &
 
-    # Launch with renamed binary
-    "$TEMP_ELECTRON_DIR/Ledger Live" ./.webpack/main.bundle.js > /dev/null 2>&1 &
-
-    # Clean up after 5 seconds
-    (sleep 5 && rm -rf "$TEMP_ELECTRON_DIR") &
-else
-    # Fallback to npx with environment overrides
-    ELECTRON_APP_NAME="Ledger Live" \\
-    ELECTRON_PRODUCT_NAME="Ledger Live" \\
-    npx electron ./.webpack/main.bundle.js > /dev/null 2>&1 &
-fi
+# Ensure the process shows as "Ledger Live" in Activity Monitor and Dock
+disown
 `;
 
     const executablePath = path.join(macOSPath, 'Ledger Live');
