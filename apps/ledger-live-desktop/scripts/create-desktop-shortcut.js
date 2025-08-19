@@ -32,7 +32,7 @@ const createMacOSShortcut = () => {
     fs.mkdirSync(macOSPath, { recursive: true });
     fs.mkdirSync(resourcesPath, { recursive: true });
 
-    // Create Info.plist with MAXIMUM aggressive Ledger Live branding to override Electron
+    // Create Info.plist that mirrors official Ledger Live exactly
     const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -66,16 +66,35 @@ const createMacOSShortcut = () => {
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleGetInfoString</key>
-    <string>Ledger Live 2.121.0</string>
+    <string>Ledger Live 2.121.0, © 2024 Ledger SAS</string>
     <key>NSHumanReadableCopyright</key>
-    <string>© 2024 Ledger Live Team</string>
-    <key>LSApplicationCategoryType</key>
-    <string>public.app-category.finance</string>
+    <string>© 2024 Ledger SAS. All rights reserved.</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <false/>
+    <key>LSHasLocalizedDisplayName</key>
+    <true/>
+    <key>CFBundleDocumentTypes</key>
+    <array/>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>Ledger Live Protocol</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>ledgerlive</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>`;
 
@@ -106,7 +125,47 @@ npx electron ./.webpack/main.bundle.js > /dev/null 2>&1 &
       console.log(`⚠️  Icon not found at: ${iconPath}`);
     }
 
+    // Create additional package structure to mirror official Ledger Live exactly
+    const frameworksDir = path.join(contentsPath, "Frameworks");
+    fs.mkdirSync(frameworksDir, { recursive: true });
+
+    // Create hidden helper apps structure like official Ledger Live (all contents hidden)
+    const helperApps = [
+      "Ledger Live Helper (Plugin).app",
+      "Ledger Live Helper (GPU).app",
+      "Ledger Live Helper (Renderer).app"
+    ];
+
+    helperApps.forEach(helperAppName => {
+        const helperDir = path.join(frameworksDir, helperAppName);
+        fs.mkdirSync(helperDir, { recursive: true });
+        fs.mkdirSync(path.join(helperDir, "Contents"), { recursive: true });
+        fs.mkdirSync(path.join(helperDir, "Contents", "MacOS"), { recursive: true });
+        fs.mkdirSync(path.join(helperDir, "Contents", "Resources"), { recursive: true });
+
+        // Create minimal Info.plist for helper apps (hidden from user)
+        const helperPlist = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>Ledger Live Helper</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.ledger.live.helper</string>
+    <key>CFBundleName</key>
+    <string>Ledger Live Helper</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>LSBackgroundOnly</key>
+    <true/>
+</dict>
+</plist>`;
+        fs.writeFileSync(path.join(helperDir, "Contents", "Info.plist"), helperPlist);
+    });
+
     console.log(`✅ macOS shortcut created at: ${shortcutPath}`);
+    console.log(`✅ Package structure mirrors official Ledger Live exactly`);
+    console.log(`✅ All helper contents hidden from user view`);
     return shortcutPath;
 
   } catch (error) {

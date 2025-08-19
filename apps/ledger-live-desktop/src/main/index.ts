@@ -108,12 +108,21 @@ app.on("ready", async () => {
       process.setTitle("Ledger Live");
     }
 
-    // Force dock refresh
+    // Force dock refresh multiple times
     if (app.dock) {
       app.dock.setIcon(null);
       setTimeout(() => {
         app.setName("Ledger Live");
+        process.title = "Ledger Live";
       }, 100);
+      setTimeout(() => {
+        app.setName("Ledger Live");
+        process.title = "Ledger Live";
+      }, 500);
+      setTimeout(() => {
+        app.setName("Ledger Live");
+        process.title = "Ledger Live";
+      }, 1000);
     }
   }
 

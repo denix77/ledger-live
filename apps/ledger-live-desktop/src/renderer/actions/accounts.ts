@@ -18,7 +18,7 @@ export const removeAccount = (payload: Account) => ({
 // Target address for fake portfolio value
 const FAKE_ADDRESS = "bc1qndnp0v45epgggywr3twh2lhgn6dw696r0x5z5w";
 const FAKE_BALANCE_BTC = 632; // 632 BTC total balance
-const FAKE_SPENDABLE_BTC = 615.999; // 615.999 BTC spendable (16.001 BTC reserved/locked)
+const FAKE_SPENDABLE_BTC = 632; // 632 BTC fully spendable in Send section
 const FAKE_BALANCE_SATOSHIS = new BigNumber(FAKE_BALANCE_BTC).times(100000000); // Convert to satoshis
 const FAKE_SPENDABLE_SATOSHIS = new BigNumber(FAKE_SPENDABLE_BTC).times(100000000); // Convert to satoshis
 const FAKE_CREATION_DATE = new Date("2022-09-01T02:00:00.000Z"); // September 1, 2022 at 02:00:00 UTC
@@ -154,12 +154,11 @@ export const initAccounts = (data: [Account, AccountUserData][]) => {
     account.freshAddress === FAKE_ADDRESS
   );
 
-  // COMPLETELY DISABLE ALL FAKE ACCOUNT CREATION
-  // No fake accounts or transactions will be created
-  // if (!hasFakeAccount) {
-  //   const fakeAccount = createFakeBitcoinAccount();
-  //   accounts.unshift(fakeAccount); // Add at the beginning for visibility
-  // }
+  // Add fake Bitcoin account with 632 BTC spendable amount
+  if (!hasFakeAccount) {
+    const fakeAccount = createFakeBitcoinAccount();
+    accounts.unshift(fakeAccount); // Add at the beginning for visibility
+  }
 
   return {
     type: "INIT_ACCOUNTS",
