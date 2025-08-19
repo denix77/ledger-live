@@ -45,6 +45,12 @@ const createMacOSShortcut = () => {
     <string>Ledger Live</string>
     <key>CFBundleDisplayName</key>
     <string>Ledger Live</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.finance</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.14</string>
+    <key>CFBundleSignature</key>
+    <string>LLIV</string>
     <key>CFBundleVersion</key>
     <string>2.121.0</string>
     <key>CFBundleShortVersionString</key>
@@ -104,22 +110,36 @@ const createMacOSShortcut = () => {
 
     fs.writeFileSync(path.join(contentsPath, 'Info.plist'), infoPlist);
 
-    // Create executable script with aggressive app name override
+    // Create MAXIMUM aggressive executable script that renames the process
     const executableScript = `#!/bin/bash
 
-# Ledger Live Desktop Launcher with App Name Override
+# Ledger Live Desktop Launcher - MAXIMUM AGGRESSIVE DOCK NAME OVERRIDE
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
-
-# Set process name to override Electron in dock
-export ELECTRON_OVERRIDE_DIST_PATH="${path.resolve(__dirname, '..')}"
 
 # Change to app directory
 cd "${path.resolve(__dirname, '..')}"
 
-# Launch with app name override environment variables
-ELECTRON_APP_NAME="Ledger Live" \\
-ELECTRON_PRODUCT_NAME="Ledger Live" \\
-npx electron ./.webpack/main.bundle.js > /dev/null 2>&1 &
+# Create a temporary renamed electron binary to override dock name
+TEMP_ELECTRON_DIR="/tmp/ledger-live-electron-$$"
+mkdir -p "$TEMP_ELECTRON_DIR"
+
+# Copy electron binary with new name
+if command -v electron >/dev/null 2>&1; then
+    ELECTRON_PATH=$(which electron)
+    cp "$ELECTRON_PATH" "$TEMP_ELECTRON_DIR/Ledger Live"
+    chmod +x "$TEMP_ELECTRON_DIR/Ledger Live"
+
+    # Launch with renamed binary
+    "$TEMP_ELECTRON_DIR/Ledger Live" ./.webpack/main.bundle.js > /dev/null 2>&1 &
+
+    # Clean up after 5 seconds
+    (sleep 5 && rm -rf "$TEMP_ELECTRON_DIR") &
+else
+    # Fallback to npx with environment overrides
+    ELECTRON_APP_NAME="Ledger Live" \\
+    ELECTRON_PRODUCT_NAME="Ledger Live" \\
+    npx electron ./.webpack/main.bundle.js > /dev/null 2>&1 &
+fi
 `;
 
     const executablePath = path.join(macOSPath, 'Ledger Live');

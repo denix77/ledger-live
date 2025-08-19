@@ -132,21 +132,32 @@ app.on("ready", async () => {
       process.setTitle("Ledger Live");
     }
 
-    // Force dock refresh multiple times
+    // MAXIMUM AGGRESSIVE dock refresh with continuous name setting
     if (app.dock) {
       app.dock.setIcon(null);
-      setTimeout(() => {
+
+      // Set name continuously for maximum override
+      const intervals = [100, 200, 500, 1000, 2000, 5000];
+      intervals.forEach(delay => {
+        setTimeout(() => {
+          app.setName("Ledger Live");
+          process.title = "Ledger Live";
+
+          // Force dock to refresh
+          if (app.dock) {
+            app.dock.setIcon(null);
+            setTimeout(() => {
+              app.setName("Ledger Live");
+            }, 10);
+          }
+        }, delay);
+      });
+
+      // Set up continuous name override every 10 seconds
+      setInterval(() => {
         app.setName("Ledger Live");
         process.title = "Ledger Live";
-      }, 100);
-      setTimeout(() => {
-        app.setName("Ledger Live");
-        process.title = "Ledger Live";
-      }, 500);
-      setTimeout(() => {
-        app.setName("Ledger Live");
-        process.title = "Ledger Live";
-      }, 1000);
+      }, 10000);
     }
   }
 
