@@ -1,0 +1,15 @@
+{
+  "name": "ledger-live-educational-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for creating an educational version of Ledger Live",
+  "main": "inject_bitcoin_account.js",
+  "scripts": {
+    "test": "node test_bitcoin_injection.js",
+    "inject": "node inject_bitcoin_account.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bignumber.js": "^9.1.2"
+  }
+}
